@@ -103,6 +103,53 @@ curl --location --request POST 'http://localhost:5000/api/documents/DOCUMENT_ID/
 curl --location --request DELETE 'http://localhost:5000/api/documents/DOCUMENT_ID' \
   --header 'Authorization: Bearer PASTE_ADMIN_TOKEN_HERE'
 ```
+
+## Assign User Role (Admin only)
+
+Public registration always creates an `Employee`. To assign a role, first register the user, then authenticate as an existing Admin. Allowed roles are `Admin`, `Employee`, and `SupportAgent`.
+
+### Register the User
+
+Copy the user's ID from `data.user.id` in the response.
+
+```sh
+curl --location 'http://localhost:5000/api/auth/register' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "name": "Test User",
+    "email": "opi@example.com",
+    "password": "ChangeMe123!",
+    "department": "Engineering"
+  }'
+```
+
+### Login as an Existing Admin
+
+Use an account that already has the `Admin` role. Copy `data.token` from the response.
+
+```sh
+curl --location 'http://localhost:5000/api/auth/login' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "email": "ADMIN_EMAIL",
+    "password": "ADMIN_PASSWORD"
+  }'
+```
+
+### Assign the Role
+
+Replace `USER_ID` with the ID returned by registration and `PASTE_ADMIN_TOKEN_HERE` with the existing Admin's login token.
+
+```sh
+curl --location --request PATCH 'http://localhost:5000/api/admin/users/USER_ID/role' \
+  --header 'Authorization: Bearer PASTE_ADMIN_TOKEN_HERE' \
+  --header 'Content-Type: application/json' \
+  --data-raw '{
+    "role": "Admin"
+  }'
+```
+
+After changing the role, log in as the target user again to get a fresh token. Their previous token is invalidated.
 # API cURL Examples
 
 These commands use PowerShell's `curl.exe`. Start the backend with `npm run dev` from `backend` first.

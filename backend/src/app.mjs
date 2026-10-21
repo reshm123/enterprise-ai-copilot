@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth/auth.routes.mjs";
 ;
 import { errorHandler } from "./middleware/error-handler.mjs";
 import documentRoutes from "./routes/document.routes.mjs";
+import adminRoutes from "./routes/admin.routes.mjs";
 const app = express();
 
 app.disable("x-powered-by");
@@ -32,6 +33,7 @@ app.use(
   "/api/documents",
   documentRoutes
 );
+app.use("/api/admin", adminRoutes);
 
 
 
