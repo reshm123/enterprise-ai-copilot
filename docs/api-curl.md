@@ -56,7 +56,7 @@ curl --location --request POST 'http://localhost:5000/api/auth/logout' \
 
 ## Documents (Admin only)
 
-All document requests require a bearer token for a user whose role is `Admin`. Replace `PASTE_ADMIN_TOKEN_HERE` with that user's login token. Upload accepts PDF, DOCX, or TXT files up to 10 MB.
+All document requests require a bearer token for a user whose role is `Admin`. Replace `PASTE_ADMIN_TOKEN_HERE` with that user's login token. Upload accepts PDF, DOCX, or TXT files up to 10 MB, stores files in S3, and processes new content into embedded chunks. Re-uploading the same active file returns the existing document and skips processing. Configure `AWS_REGION`, `AWS_S3_BUCKET`, and `OPENAI_API_KEY`; provide AWS credentials through the AWS SDK credential chain. Never commit secrets.
 
 ### Upload Document
 
@@ -68,6 +68,21 @@ curl --location 'http://localhost:5000/api/documents' \
   --form 'file=@/path/to/document.pdf' \
   --form 'title=Project document' \
   --form 'description=Document uploaded for testing'
+```
+
+### Test Processing and Duplicate Skip
+
+Run the upload request twice with the exact same file. On the first upload, expect `data.duplicate` to be `false`; with valid S3 and OpenAI configuration, `data.document.status` should be `Completed`, with `chunkCount` greater than zero. Copy `data.document._id`.
+
+On the second upload, expect HTTP `200`, `data.duplicate: true`, and the same document ID. Processing and embedding should be skipped.
+
+### Check Processing Status
+
+Replace `DOCUMENT_ID` with the ID returned by the upload request. The document response includes `status`, `processingError`, `chunkCount`, and extracted-text `metadata`.
+
+```sh
+curl --location 'http://localhost:5000/api/documents/DOCUMENT_ID' \
+  --header 'Authorization: Bearer PASTE_ADMIN_TOKEN_HERE'
 ```
 
 ### List Documents

@@ -8,32 +8,34 @@ import {
 
 import { successResponse } from "../utils/apiResponse.mjs";
 
-export const uploadDocument = async (
-  req,
-  res,
-  next
-) => {
+export const uploadDocument = async (req, res, next) => {
+  console.log(req.file, req.body.title, req.body.description);
+
   try {
-    const document = await createDocument({
+    const { document, duplicate } = await createDocument({
       file: req.file,
       title:
         req.body.title ||
         req.file?.originalname ||
         "Untitled Document",
-
-      description:
-        req.body.description || "",
-
+      description: req.body.description || "",
       userId: req.user.id,
-
       req,
     });
 
+    console.log("kkkkkkk",document, duplicate,"pppppppppp");
+
+    const message = duplicate
+      ? "Duplicate document detected; processing skipped."
+      : document.status === "Completed"
+        ? "Document processed successfully."
+        : "Document uploaded, but processing failed.";
+
     return successResponse(
       res,
-      "Document uploaded successfully.",
-      document,
-      201
+      message,
+      { document, duplicate },
+      duplicate ? 200 : 201
     );
   } catch (error) {
     next(error);

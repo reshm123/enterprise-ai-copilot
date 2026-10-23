@@ -27,6 +27,18 @@ const documentSchema = new mongoose.Schema(
       required: true,
     },
 
+    storageProvider: {
+      type: String,
+      enum: ["local", "s3"],
+      default: "local",
+      required: true,
+    },
+
+    contentHash: {
+      type: String,
+      match: /^[a-f0-9]{64}$/,
+    },
+
     mimeType: {
       type: String,
       required: true,
@@ -149,5 +161,17 @@ documentSchema.index({
   uploadedBy: 1,
   createdAt: -1,
 });
+
+documentSchema.index(
+  { contentHash: 1 },
+  {
+    name: "contentHash_active_unique",
+    unique: true,
+    partialFilterExpression: {
+      contentHash: { $type: "string" },
+      isDeleted: false,
+    },
+  }
+);
 
 export default mongoose.model("Document", documentSchema);
